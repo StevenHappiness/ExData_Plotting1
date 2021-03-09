@@ -38,11 +38,12 @@ with(tidydata, {
 })
 legend("topright",lwd=1,col = c("black","red","green"),
        legend=c("Sub_metering_1","Sub_metering_2","Sub_metering_3"),
-       cex=0.25)
+       cex=0.5)
 dev.copy(png,"plot3.png", width = 480, height = 480)
 dev.off()
 
 #plot4
+windows(height = 7, width = 3.5)
 par(mfrow=c(2,2),mar=c(4,4,2,2))
 hist(tidydata$Global_active_power,
      main = "Global Active Power",xlab = "Global Active Power (kilowatts)",
