@@ -1,43 +1,70 @@
+#fetch the raw data
+url <- "https://d396qusza40orc.cloudfront.net/exdata%2Fdata%2Fhousehold_power_consumption.zip"
+download.file(url,destfile = "./HPC.zip")
+unzip("./HPC.zip")
+
+#construct the tidydata
 library(sqldf)
 HPC <- read.csv.sql("household_power_consumption.txt",
                    header=T,sep = ";",
                    "select * from file where Date = '1/2/2007' or Date = '2/2/2007'")
-HPC$Date <- as.Date(HPC$Date)
-HPC$Time <- strptime(HPC$Time,"%H:%M:%S")
+DateTime <- paste(HPC$Date,HPC$Time)
+DateTime <- as.POSIXct(DateTime,format = "%d/%m/%Y %H:%M:%S")
+tidydata <- cbind(DateTime,HPC[,-(1:2)])
 
+#plot1
 par(mfrow=c(1,1))
-hist(HPC$Global_active_power,
+hist(tidydata$Global_active_power,
       main = "Global Active Power",xlab = "Global Active Power (kilowatts)",
      col="red",breaks = 12,
      xlim = c(0,6),ylim = c(0,1200))
+dev.copy(png,"plot1.png", width = 480, height = 480)
+dev.off()
 
-plot(HPC$Global_active_power,
+#plot2
+par(mar=c(4,4,2,2))
+plot(tidydata$Global_active_power~tidydata$DateTime,
      xlab="",ylab="Global Active Power (kilowatts)",
      type = "l")
-axis(1,at=c(0,1440,2880),labels=c("Thu","Fri","Sat"))
+dev.copy(png,"plot2.png", width = 480, height = 480)
+dev.off()
 
-dat <- data.matrix(HPC[,c(7,8,9)])
-matplot(dat,type="l",pch=1,col=c("black","red","blue"))
-axis(1,at=c(0,1440,2880),labels=c("Thu","Fri","Sat"))
-legend("topright",lty = c(1,1,1),col = c("black","red","green"),
-       legend=c("Sub_metering_1","Sub_metering_2","Sub_metering_3"))
+#plot3
+windows(height = 7, width = 3.5)
+with(tidydata, {
+    plot(Sub_metering_1~DateTime,type="l",ylab="Energy sub metering", xlab="")
+    lines(Sub_metering_2~DateTime,col= "Red")
+    lines(Sub_metering_3~DateTime,col="Blue")
+})
+legend("topright",lwd=1,col = c("black","red","green"),
+       legend=c("Sub_metering_1","Sub_metering_2","Sub_metering_3"),
+       cex=0.25)
+dev.copy(png,"plot3.png", width = 480, height = 480)
+dev.off()
 
-par(mfrow=c(2,2),mar=c(2,2,2,2))
-plot(HPC$Global_active_power,
-     xlab="",ylab="Global Active Power (kilowatts)",
-     type = "l")
+#plot4
+par(mfrow=c(2,2),mar=c(4,4,2,2))
+hist(tidydata$Global_active_power,
+     main = "Global Active Power",xlab = "Global Active Power (kilowatts)",
+     col="red",breaks = 12,
+     xlim = c(0,6),ylim = c(0,1200))
 
-plot(HPC$Voltage,
+plot(tidydata$Voltage,
      xlab="datetime",ylab="Voltage",
      type = "l")
 
-dat <- data.matrix(HPC[,c(7,8,9)])
-matplot(dat,type="l",pch=1,col=c("black","red","blue"))
-axis(1,at=c(0,1440,2880),labels=c("Thu","Fri","Sat"))
-legend("topright",lty = c(1,1,1),col = c("black","red","green"),
-       legend=c("Sub_metering_1","Sub_metering_2","Sub_metering_3"))
+with(tidydata, {
+    plot(Sub_metering_1~DateTime,type="l",ylab="Energy sub metering", xlab="")
+    lines(Sub_metering_2~DateTime,col= "Red")
+    lines(Sub_metering_3~DateTime,col="Blue")
+})
+legend("topright",lwd=1,col = c("black","red","green"),
+       legend=c("Sub_metering_1","Sub_metering_2","Sub_metering_3"),
+       cex=0.25)
 
 plot(HPC$Global_reactive_power,
      xlab="datetime",ylab="Global Reactive Power",
      type = "l")
 
+dev.copy(png,"plot4.png", width = 480, height = 480)
+dev.off()
